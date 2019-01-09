@@ -13,40 +13,44 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import java.util.ArrayList;
 
 /*
 	Tomb Maze game
-	2019 Evgeny Turin
-
- */
+	2019 Evgeny Tyurin
+*/
 
 public class TombMaze extends ApplicationAdapter {
 
 	private PerspectiveCamera camera;
 	private ModelBatch modelBatch;
-	private Model box;
-	private ModelInstance boxInstance;
+	private Model wallModel;
+    private ArrayList<ModelInstance> walls;
 	private Environment environment;
 
 	// Run point
 	@Override
 	public void create () {
 		// Create camera
-		camera = new PerspectiveCamera(75, Gdx.graphics.getWidth(),
+		camera = new PerspectiveCamera(Graph3D.CAMERA_VIEW_ANGLE, Gdx.graphics.getWidth(),
 				Gdx.graphics.getHeight());
-		camera.position.set(0f, 0f, 3f);
-		camera.lookAt(0f, 0f, 0f);
-		camera.near = 0.1f;
-		camera.far = 300f;
+		camera.position.set(Graph3D.CAMERA_POS_INIT);
+		camera.lookAt(Graph3D.CAMERA_LOOK_INIT_AT);
+		camera.near = Graph3D.CAMERA_NEAR;
+		camera.far = Graph3D.CAMERA_FAR;
 
 		// Create 3D model
 		modelBatch = new ModelBatch();
 		ModelBuilder modelBuilder = new ModelBuilder();
-		box = modelBuilder.createBox(2f, 2f, 2f,
-				new Material(ColorAttribute.createDiffuse(Color.BLUE)),
+		wallModel = modelBuilder.createBox(Graph3D.WALL_WIDTH, Graph3D.WALL_HEIGHT,
+                Graph3D.WALL_DEPTH, new Material(ColorAttribute.createDiffuse(Color.BLUE)),
 				VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-		boxInstance = new ModelInstance(box, 0, 0, 0);
+
+		// Create labyrinth
+        walls = new ArrayList<ModelInstance>();
+        addWall(5, 5);
 
 		// Create light
 		environment = new Environment();
@@ -55,9 +59,60 @@ public class TombMaze extends ApplicationAdapter {
 
 	}
 
+	// Add wall to labyrinth
+	private void addWall(float x, float y) {
+	    ModelInstance wall = new ModelInstance(wallModel, x, y, 0);
+	    wall.userData = new Rectangle(x - Graph3D.WALL_BOUNDS_PLUS, y - Graph3D.WALL_BOUNDS_PLUS,
+                Graph3D.WALL_WIDTH + Graph3D.WALL_BOUNDS_PLUS,
+                Graph3D.WALL_DEPTH + Graph3D.WALL_BOUNDS_PLUS);
+	    walls.add(wall);
+    }
+
+	// Handle user input
+	private void handleInput() {
+        // If nothing pressed - exit
+        if (!Gdx.input.isTouched())
+            return;
+		// Get X and Y of user click
+		float touchX = Gdx.input.getY();
+		float touchY = Gdx.input.getX();
+		// Move
+		if (touchY < 500 || touchY > 1500) {
+			// camera.translate(0.01f, 0, 0);
+			float moveScale;
+			if (touchY < 500)
+				moveScale = 0.1f;
+			else
+				moveScale = -0.1f;
+			Vector3 newPos = new Vector3();
+            newPos.set(camera.direction).scl(moveScale);
+            newPos.add(camera.position);
+            boolean collision = false;
+            for (ModelInstance wall : walls) {
+                Rectangle bounds = (Rectangle) wall.userData;
+                if (bounds.contains(newPos.x, newPos.y)) {
+                    collision = true;
+                    break;
+                }
+            }
+            if (!collision) {
+                camera.position.set(newPos);
+                // camera.position.add(camVector);
+            }
+		} else {
+		// Rotate
+			float angle;
+			if (touchX < PhoneScreen.CENTER_X)
+				angle = 1;
+			else
+				angle = -1;
+			camera.rotate(Vector3.Z, angle);
+		}
+    }
+
 	// Update scene
-	private void update() {
-		camera.rotateAround(Vector3.Zero, new Vector3(0,1,0),1f);
+	private void update(float deltaTime) {
+        handleInput();
 		camera.update();
 	}
 
@@ -71,11 +126,12 @@ public class TombMaze extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		// Update scene
-		update();
+		update(Gdx.graphics.getDeltaTime());
 
 		// Render 3D models
 		modelBatch.begin(camera);
-		modelBatch.render(boxInstance, environment);
+		for (ModelInstance wall : walls)
+		    modelBatch.render(wall, environment);
 		modelBatch.end();
 	}
 
@@ -83,6 +139,6 @@ public class TombMaze extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		modelBatch.dispose();
-		box.dispose();
+		wallModel.dispose();
 	}
 }
