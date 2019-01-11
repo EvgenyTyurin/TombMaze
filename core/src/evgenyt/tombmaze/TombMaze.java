@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -15,6 +16,8 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import java.util.ArrayList;
 
 /*
@@ -29,6 +32,9 @@ public class TombMaze extends ApplicationAdapter {
 	private Model wallModel;
     private ArrayList<ModelInstance> walls;
 	private Environment environment;
+	private Stage stage;
+	private Label label;
+	private BitmapFont font;
 
 	// Run point
 	@Override
@@ -49,24 +55,21 @@ public class TombMaze extends ApplicationAdapter {
 				VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
 		// Create labyrinth
-        walls = new ArrayList<ModelInstance>();
-        addWall(5, 5);
+        Maze.createMaze(2, 2);
+        walls = Maze.walls;
 
 		// Create light
 		environment = new Environment();
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f,
 				1.0f));
 
-	}
+		// HUD
+		stage = new Stage();
+		font = new BitmapFont();
+		label = new Label("test", new Label.LabelStyle(font, Color.BLACK));
+		stage.addActor(label);
 
-	// Add wall to labyrinth
-	private void addWall(float x, float y) {
-	    ModelInstance wall = new ModelInstance(wallModel, x, y, 0);
-	    wall.userData = new Rectangle(x - Graph3D.WALL_BOUNDS_PLUS, y - Graph3D.WALL_BOUNDS_PLUS,
-                Graph3D.WALL_WIDTH + Graph3D.WALL_BOUNDS_PLUS,
-                Graph3D.WALL_DEPTH + Graph3D.WALL_BOUNDS_PLUS);
-	    walls.add(wall);
-    }
+	}
 
 	// Handle user input
 	private void handleInput() {
@@ -133,6 +136,11 @@ public class TombMaze extends ApplicationAdapter {
 		for (ModelInstance wall : walls)
 		    modelBatch.render(wall, environment);
 		modelBatch.end();
+
+		// Render HUD
+		label.setText("dsdsd");
+		stage.draw();
+
 	}
 
 	// Exit point
