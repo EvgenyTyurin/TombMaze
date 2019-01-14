@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -34,7 +33,6 @@ public class TombMaze extends ApplicationAdapter {
 	private Environment environment;
 	private Stage stage;
 	private Label label;
-	private BitmapFont font;
 
 	// Run point
 	@Override
@@ -55,7 +53,7 @@ public class TombMaze extends ApplicationAdapter {
 				VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
 		// Create labyrinth
-        Maze.createMaze(2, 2);
+        Maze.createMaze(2, 1);
         walls = Maze.walls;
 
 		// Create light
@@ -65,8 +63,8 @@ public class TombMaze extends ApplicationAdapter {
 
 		// HUD
 		stage = new Stage();
-		font = new BitmapFont();
-		label = new Label("test", new Label.LabelStyle(font, Color.BLACK));
+		label = new Label("", PhoneScreen.HUD_LABEL_STYLE);
+		label.setPosition(10, 10);
 		stage.addActor(label);
 
 	}
@@ -77,44 +75,57 @@ public class TombMaze extends ApplicationAdapter {
         if (!Gdx.input.isTouched())
             return;
 		// Get X and Y of user click
-		float touchX = Gdx.input.getY();
-		float touchY = Gdx.input.getX();
-		// Move
-		if (touchY < 500 || touchY > 1500) {
-			// camera.translate(0.01f, 0, 0);
+		float touchX = Gdx.input.getX();
+		float touchY = PhoneScreen.flipY(Gdx.input.getY());
+		// Move back or forward
+		if (touchX > 500 && touchX < 1500) {
+		    // Calculate new camera position
 			float moveScale;
-			if (touchY < 500)
+			if (touchY > PhoneScreen.CENTER_Y)
 				moveScale = 0.1f;
 			else
 				moveScale = -0.1f;
 			Vector3 newPos = new Vector3();
             newPos.set(camera.direction).scl(moveScale);
             newPos.add(camera.position);
-            boolean collision = false;
-            for (ModelInstance wall : walls) {
-                Rectangle bounds = (Rectangle) wall.userData;
-                if (bounds.contains(newPos.x, newPos.y)) {
-                    collision = true;
-                    break;
-                }
-            }
-            if (!collision) {
+            // If no collision - move camera
+            if (!Graph3D.collision(walls, newPos))
                 camera.position.set(newPos);
-                // camera.position.add(camVector);
-            }
 		} else {
-		// Rotate
-			float angle;
-			if (touchX < PhoneScreen.CENTER_X)
-				angle = 1;
-			else
-				angle = -1;
-			camera.rotate(Vector3.Z, angle);
+		    // Rotate
+            if (touchY > PhoneScreen.CENTER_Y) {
+                float angle;
+                if (touchX < PhoneScreen.CENTER_X)
+                    angle = 1;
+                else
+                    angle = -1;
+                camera.rotate(Vector3.Z, angle);
+            } else {
+                // Strafe
+                // Calculate new camera position
+                float moveScale;
+                float angle;
+                if (touchX > PhoneScreen.CENTER_X) {
+                    moveScale = 0.1f;
+                    angle = -90;
+                }
+                else {
+                    moveScale = 0.1f;
+                    angle = 90;
+                }
+                Vector3 newPos = new Vector3();
+                newPos.set(camera.direction).scl(moveScale);
+                newPos.rotate(Vector3.Z, angle);
+                newPos.add(camera.position);
+                // If no collision - move camera
+                if (!Graph3D.collision(walls, newPos))
+                    camera.position.set(newPos);
+            }
 		}
     }
 
 	// Update scene
-	private void update(float deltaTime) {
+	private void update() {
         handleInput();
 		camera.update();
 	}
@@ -129,7 +140,7 @@ public class TombMaze extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		// Update scene
-		update(Gdx.graphics.getDeltaTime());
+		update();
 
 		// Render 3D models
 		modelBatch.begin(camera);
@@ -138,7 +149,9 @@ public class TombMaze extends ApplicationAdapter {
 		modelBatch.end();
 
 		// Render HUD
-		label.setText("dsdsd");
+		label.setText("X=" + camera.position.x +
+            " Y: " + camera.position.y +
+            " Angle: " + camera.direction);
 		stage.draw();
 
 	}
