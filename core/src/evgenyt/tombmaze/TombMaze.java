@@ -2,18 +2,12 @@ package evgenyt.tombmaze;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -28,7 +22,6 @@ public class TombMaze extends ApplicationAdapter {
 
 	private PerspectiveCamera camera;
 	private ModelBatch modelBatch;
-	private Model wallModel;
     private ArrayList<ModelInstance> walls;
 	private Environment environment;
 	private Stage stage;
@@ -45,16 +38,11 @@ public class TombMaze extends ApplicationAdapter {
 		camera.near = Graph3D.CAMERA_NEAR;
 		camera.far = Graph3D.CAMERA_FAR;
 
-		// Create 3D model
+		// 3D rendering batch
 		modelBatch = new ModelBatch();
-		ModelBuilder modelBuilder = new ModelBuilder();
-		wallModel = modelBuilder.createBox(Graph3D.WALL_WIDTH, Graph3D.WALL_HEIGHT,
-                Graph3D.WALL_DEPTH, new Material(ColorAttribute.createDiffuse(Color.BLUE)),
-				VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
 		// Create labyrinth
-        Maze.createMaze(2, 1);
-        walls = Maze.walls;
+        walls = Maze.createMaze(3, 3);
 
 		// Create light
 		environment = new Environment();
@@ -88,8 +76,8 @@ public class TombMaze extends ApplicationAdapter {
 			Vector3 newPos = new Vector3();
             newPos.set(camera.direction).scl(moveScale);
             newPos.add(camera.position);
-            // If no collision - move camera
-            if (!Graph3D.collision(walls, newPos))
+            // If no collisionFlour - move camera
+            if (!Graph3D.collisionFlour(walls, newPos))
                 camera.position.set(newPos);
 		} else {
 		    // Rotate
@@ -117,8 +105,8 @@ public class TombMaze extends ApplicationAdapter {
                 newPos.set(camera.direction).scl(moveScale);
                 newPos.rotate(Vector3.Z, angle);
                 newPos.add(camera.position);
-                // If no collision - move camera
-                if (!Graph3D.collision(walls, newPos))
+                // If no collisionFlour - move camera
+                if (!Graph3D.collisionFlour(walls, newPos))
                     camera.position.set(newPos);
             }
 		}
@@ -128,6 +116,9 @@ public class TombMaze extends ApplicationAdapter {
 	private void update() {
         handleInput();
 		camera.update();
+        label.setText("X=" + camera.position.x +
+                " Y: " + camera.position.y +
+                " Angle: " + camera.direction);
 	}
 
 	// Render scene
@@ -148,10 +139,7 @@ public class TombMaze extends ApplicationAdapter {
 		    modelBatch.render(wall, environment);
 		modelBatch.end();
 
-		// Render HUD
-		label.setText("X=" + camera.position.x +
-            " Y: " + camera.position.y +
-            " Angle: " + camera.direction);
+		// Draw HUD
 		stage.draw();
 
 	}
@@ -160,6 +148,5 @@ public class TombMaze extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		modelBatch.dispose();
-		wallModel.dispose();
 	}
 }
