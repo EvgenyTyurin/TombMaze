@@ -17,8 +17,8 @@ class Graph3D {
     /** Camera settings */
     static final float CAMERA_NEAR = 0.1f;
     static final float CAMERA_FAR = 300;
-    static final Vector3 CAMERA_POS_INIT = new Vector3(-0, -3, 0);
-    static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(0, 0, 0);
+    static final Vector3 CAMERA_POS_INIT = new Vector3(-0, -3, 0.5f);
+    static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(0, 0, 0.5f);
     static final float CAMERA_VIEW_ANGLE = 75;
 
     /** Wall settings */
