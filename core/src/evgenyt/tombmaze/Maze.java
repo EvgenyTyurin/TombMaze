@@ -1,5 +1,7 @@
 package evgenyt.tombmaze;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -20,9 +22,7 @@ import java.util.ArrayList;
 
 class Maze {
 
-    private static int[][] mazeData;
-
-    // Build 3D wall
+    /** @return 3D wall */
     private static ModelInstance buildWall(float x, float y, float width) {
         ModelBuilder modelBuilder = new ModelBuilder();
         Texture texture = new Texture("texture.png");
@@ -75,28 +75,40 @@ class Maze {
         return (wall);
     }
 
-    // Create maze data and build 3d walls
-    static ArrayList<ModelInstance> createMaze(int width, int height) {
-        ArrayList<ModelInstance> walls = new ArrayList<ModelInstance>();
-        mazeData = new int[width][height];
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                mazeData[x][y] = 0;
-        mazeData[0][0] = 1;
-        mazeData[1][0] = 0;
-        mazeData[2][0] = 1;
-        mazeData[0][1] = 1;
-        mazeData[1][1] = 1;
-        mazeData[2][1] = 1;
-        mazeData[0][2] = 1;
-        mazeData[1][2] = 1;
-        mazeData[2][2] = 1;
-        // Build walls
+    /** @return maze data, loaded from file */
+    private static int[][] loadMaze(String mazeFile) {
+        int width = 0;
+        int height = 0;
+        FileHandle fileHandle = Gdx.files.internal(mazeFile);
+        String strMaze = fileHandle.readString();
+        String[] strings = strMaze.split("\n");
+        String[] mazeSize = strings[0].split(",");
+        width = Integer.valueOf(mazeSize[0]);
+        height = Integer.valueOf(mazeSize[1]);
+        System.out.println("loadMaze: width=" + width + " height=" + height);
+        int[][] mazeData = new int[width][height];
         for (int y = 0; y < height; y++) {
+            String[] cells = strings[y + 1].split(",");
+            System.out.println("loadMaze: cells=" + cells);
+            for (int x = 0; x < width; x++) {
+                mazeData[x][y] = Integer.valueOf(cells[x]);
+                System.out.println("loadMaze: mazeData[" + x + "][" + y + "]=" + mazeData[x][y]);
+            }
+        }
+        System.out.println("loadMaze: Maze loaded.");
+        return mazeData;
+    }
+
+    /** @return 3d walls list by loaded maze data from file */
+    static ArrayList<ModelInstance> createMaze(String mazeFile) {
+        int[][] mazeData = loadMaze(mazeFile);
+        ArrayList<ModelInstance> walls = new ArrayList<ModelInstance>();
+        // Build walls
+        for (int y = 0; y < mazeData.length; y++) {
             int xBegin = 0;
             int xEnd = 0;
             int blockWidth = 0;
-            while (xEnd < width){
+            while (xEnd < mazeData.length){
                 if (mazeData[xEnd][y] == 1) {
                     blockWidth++;
                     xEnd++;

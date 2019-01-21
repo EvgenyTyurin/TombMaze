@@ -1,5 +1,7 @@
 package evgenyt.tombmaze;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
@@ -15,11 +17,11 @@ import java.util.ArrayList;
 class Graph3D {
 
     /** Camera settings */
-    static final float CAMERA_NEAR = 0.1f;
-    static final float CAMERA_FAR = 300;
-    static final Vector3 CAMERA_POS_INIT = new Vector3(-0, -3, 0.5f);
-    static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(0, 0, 0.5f);
-    static final float CAMERA_VIEW_ANGLE = 75;
+    private static final float CAMERA_NEAR = 0.1f;
+    private static final float CAMERA_FAR = 300;
+    private static final Vector3 CAMERA_POS_INIT = new Vector3(1.5f, 1.5f, 0.5f);
+    private static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(2, 2, 0.5f);
+    private static final float CAMERA_VIEW_ANGLE = 75;
 
     /** Wall settings */
     static final float WALL_WIDTH = 1;
@@ -36,4 +38,17 @@ class Graph3D {
         }
         return false;
     }
+
+    /** @return New player camera */
+    static PerspectiveCamera getPlayerCamera() {
+        PerspectiveCamera camera = new PerspectiveCamera(CAMERA_VIEW_ANGLE,
+                Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.position.set(CAMERA_POS_INIT);
+        camera.rotate(90, 1, 0, 0);
+        camera.lookAt(CAMERA_LOOK_INIT_AT);
+        camera.near = CAMERA_NEAR;
+        camera.far = CAMERA_FAR;
+        return camera;
+    }
+
 }

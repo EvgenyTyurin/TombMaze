@@ -31,18 +31,13 @@ public class TombMaze extends ApplicationAdapter {
 	@Override
 	public void create () {
 		// Create camera
-		camera = new PerspectiveCamera(Graph3D.CAMERA_VIEW_ANGLE, Gdx.graphics.getWidth(),
-				Gdx.graphics.getHeight());
-		camera.position.set(Graph3D.CAMERA_POS_INIT);
-		camera.lookAt(Graph3D.CAMERA_LOOK_INIT_AT);
-		camera.near = Graph3D.CAMERA_NEAR;
-		camera.far = Graph3D.CAMERA_FAR;
+		camera = Graph3D.getPlayerCamera();
 
 		// 3D rendering batch
 		modelBatch = new ModelBatch();
 
 		// Create labyrinth
-        walls = Maze.createMaze(3, 3);
+        walls = Maze.createMaze("maze01.txt");
 
 		// Create light
 		environment = new Environment();
