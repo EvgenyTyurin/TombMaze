@@ -36,6 +36,9 @@ public class TombMaze extends ApplicationAdapter {
 		// 3D rendering batch
 		modelBatch = new ModelBatch();
 
+		// Load textures and create materials
+		Graph3D.loadTexturesAndMaterials();
+
 		// Create labyrinth
         walls = Maze.createMaze("maze01.txt");
 
@@ -44,12 +47,11 @@ public class TombMaze extends ApplicationAdapter {
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f,
 				1.0f));
 
-		// HUD
+		// Create HUD
 		stage = new Stage();
 		label = new Label("", PhoneScreen.HUD_LABEL_STYLE);
 		label.setPosition(10, 10);
 		stage.addActor(label);
-
 	}
 
 	// Handle user input
