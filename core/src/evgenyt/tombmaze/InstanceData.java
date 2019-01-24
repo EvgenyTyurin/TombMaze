@@ -20,4 +20,7 @@ class InstanceData {
         return bounds2D;
     }
 
+    public ObjType getObjType() {
+        return objType;
+    }
 }

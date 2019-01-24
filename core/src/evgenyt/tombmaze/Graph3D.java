@@ -1,6 +1,7 @@
 package evgenyt.tombmaze;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -8,12 +9,12 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-
 import java.util.ArrayList;
 
 /**
@@ -38,27 +39,58 @@ class Graph3D {
     private static final float WALL_BOUNDS_PLUS = 0.1f;
     private static final String WALL_TEXTURE = "texture.png";
 
+    /** Prize settings */
+    private static final float PRIZE_WIDTH = 0.5f;
+    private static final float PRIZE_HEIGHT = 0.5f;
+    private static final float PRIZE_DEPTH = 0.5f;
+    private static final float PRIZE_BOUNDS_PLUS = 0.1f;
+
+
     /** 3D materials */
     private static Material wallMaterial;
+    private static Material blueMaterial;
 
     /** Loads textures from files to memory, creates materials */
     static void loadTexturesAndMaterials(){
+        // Wall material
         Texture wallTexture = new Texture(WALL_TEXTURE);
         wallTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         wallTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         TextureAttribute textureAttribute = TextureAttribute.createDiffuse(wallTexture);
         wallMaterial = new Material(textureAttribute);
+        // Blue material
+        blueMaterial = new Material(ColorAttribute.createDiffuse(Color.BLUE));
     }
 
-    /** @return true if detects collision of 2d bounds of objects with position (x,y,0) */
-    static boolean collisionFlour(ArrayList<ModelInstance> walls, Vector3 position) {
-        for (ModelInstance wall : walls) {
-            InstanceData instanceData = (InstanceData) wall.userData;
-            Rectangle bounds = instanceData.getBounds2D();
-            if (bounds.contains(position.x, position.y))
-                return true;
+    /** @return collision type */
+    static ObjType collisionType(ArrayList<ModelInstance> objects3D, Vector3 position) {
+        ModelInstance instance = collision2D(objects3D, position);
+        if (instance == null)
+            return ObjType.NULL;
+        InstanceData instanceData = (InstanceData) instance.userData;
+        if (instanceData == null)
+            return ObjType.NULL;
+        else
+            return instanceData.getObjType();
+    }
+
+    /** @return object in collection that 2D bounds collide with position */
+    static ModelInstance collision2D(ArrayList<ModelInstance> objects3D, Vector3 position) {
+        for (ModelInstance obj3D : objects3D) {
+            if (collision2Dobject(obj3D, position))
+                return obj3D;
         }
-        return false;
+        return null;
+    }
+
+    /** @return true if 2D bounds of 3D object contains position */
+    static boolean collision2Dobject(ModelInstance object, Vector3 position) {
+        InstanceData instanceData = (InstanceData) object.userData;
+        Rectangle bounds = instanceData.getBounds2D();
+        if (bounds.contains(position.x, position.y))
+            return true;
+        else
+            return false;
     }
 
     /** @return New player camera */
@@ -74,20 +106,25 @@ class Graph3D {
     }
 
 
-    /** @return 3D prize */
-    static ModelInstance buidPrize(float x, float y) {
-        return null;
+    /** @return 3D prize object at x,y  */
+    static ModelInstance buildPrize(float x, float y) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model model = modelBuilder.createBox(PRIZE_WIDTH, PRIZE_HEIGHT, PRIZE_DEPTH, blueMaterial,
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        float prizeX = x - PRIZE_WIDTH;
+        float prizeY = y - PRIZE_DEPTH;
+        float prizeZ = PRIZE_HEIGHT / 2;
+        ModelInstance modelInstance = new ModelInstance(model, prizeX, prizeY,  prizeZ);
+        modelInstance.userData = new InstanceData(ObjType.PRIZE,
+                new Rectangle(prizeX - PRIZE_BOUNDS_PLUS, prizeY - PRIZE_BOUNDS_PLUS,
+                        PRIZE_WIDTH + PRIZE_BOUNDS_PLUS * 2,
+                        PRIZE_DEPTH + WALL_BOUNDS_PLUS * 2));
+        return (modelInstance);
     }
 
-    /** @return 3D wall */
+    /** @return 3D wall objects at x,y with width long */
     static ModelInstance buildWall(float x, float y, float width) {
         ModelBuilder modelBuilder = new ModelBuilder();
-        /* simple box method
-        Model wallModel = modelBuilder.createBox(width, Graph3D.WALL_HEIGHT,
-                Graph3D.WALL_DEPTH, material,
-                VertexAttributes.Usage.Position |
-                        VertexAttributes.Usage.TextureCoordinates);
-        */
         modelBuilder.begin();
         MeshPartBuilder meshBuilder = modelBuilder.part("box", GL20.GL_TRIANGLES,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal |

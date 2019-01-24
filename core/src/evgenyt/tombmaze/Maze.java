@@ -61,6 +61,12 @@ class Maze {
             if (blockWidth > 0)
                 walls.add(Graph3D.buildWall(xBegin, y, blockWidth));
         }
+        for (int y = 0; y < mazeData.length; y++) {
+            for (int x = 0; x < mazeData.length; x++) {
+                if (mazeData[x][y] == 2)
+                    walls.add(Graph3D.buildPrize(x + 1, y + 1));
+            }
+        }
         return walls;
     }
 }

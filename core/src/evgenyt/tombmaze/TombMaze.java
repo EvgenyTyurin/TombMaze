@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /*
 	Tomb Maze game
@@ -26,21 +27,17 @@ public class TombMaze extends ApplicationAdapter {
 	private Environment environment;
 	private Stage stage;
 	private Label label;
+	private String[] mazes = {"maze01.txt", "maze02.txt"};
+	private int mazeIdx = 0;
 
 	// Run point
 	@Override
 	public void create () {
-		// Create camera
-		camera = Graph3D.getPlayerCamera();
-
 		// 3D rendering batch
 		modelBatch = new ModelBatch();
 
 		// Load textures and create materials
 		Graph3D.loadTexturesAndMaterials();
-
-		// Create labyrinth
-        walls = Maze.createMaze("maze01.txt");
 
 		// Create light
 		environment = new Environment();
@@ -52,6 +49,37 @@ public class TombMaze extends ApplicationAdapter {
 		label = new Label("", PhoneScreen.HUD_LABEL_STYLE);
 		label.setPosition(10, 10);
 		stage.addActor(label);
+
+		// Enter labyrinth
+        newMaze();
+	}
+
+	/** Player enters new maze */
+	private void newMaze() {
+	    if (mazeIdx > mazes.length - 1)
+	        return;
+        // Create camera
+        camera = Graph3D.getPlayerCamera();
+        // Create labyrinth
+        walls = Maze.createMaze(mazes[mazeIdx]);
+        mazeIdx++;
+    }
+
+	/** Player move to new position */
+	private void playerMove(Vector3 newPos) {
+		camera.position.set(newPos);
+	}
+
+
+	/** Player want to move to new position */
+	private void wantMove(Vector3 newPos) {
+		ObjType objType = Graph3D.collisionType(walls, newPos);
+        switch (objType) {
+			case WALL:  break;
+			case PRIZE: newMaze();
+					    break;
+			default: playerMove(newPos);
+		}
 	}
 
 	// Handle user input
@@ -73,9 +101,7 @@ public class TombMaze extends ApplicationAdapter {
 			Vector3 newPos = new Vector3();
             newPos.set(camera.direction).scl(moveScale);
             newPos.add(camera.position);
-            // If no collisionFlour - move camera
-            if (!Graph3D.collisionFlour(walls, newPos))
-                camera.position.set(newPos);
+            wantMove(newPos);
 		} else {
 		    // Rotate
             if (touchY > PhoneScreen.CENTER_Y) {
@@ -102,9 +128,7 @@ public class TombMaze extends ApplicationAdapter {
                 newPos.set(camera.direction).scl(moveScale);
                 newPos.rotate(Vector3.Z, angle);
                 newPos.add(camera.position);
-                // If no collisionFlour - move camera
-                if (!Graph3D.collisionFlour(walls, newPos))
-                    camera.position.set(newPos);
+                wantMove(newPos);
             }
 		}
     }
