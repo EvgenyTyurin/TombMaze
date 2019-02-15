@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 /*
 	Tomb Maze game
@@ -29,6 +28,7 @@ public class TombMaze extends ApplicationAdapter {
 	private Label label;
 	private String[] mazes = {"maze01.txt", "maze02.txt"};
 	private int mazeIdx = 0;
+	private boolean cameraFalling;
 
 	// Run point
 	@Override
@@ -63,6 +63,7 @@ public class TombMaze extends ApplicationAdapter {
         // Create labyrinth
         walls = Maze.createMaze(mazes[mazeIdx]);
         mazeIdx++;
+        cameraFalling = true;
     }
 
 	/** Player move to new position */
@@ -84,8 +85,8 @@ public class TombMaze extends ApplicationAdapter {
 
 	// Handle user input
 	private void handleInput() {
-        // If nothing pressed - exit
-        if (!Gdx.input.isTouched())
+        // If falling or nothing pressed - exit
+        if (cameraFalling || !Gdx.input.isTouched())
             return;
 		// Get X and Y of user click
 		float touchX = Gdx.input.getX();
@@ -136,6 +137,15 @@ public class TombMaze extends ApplicationAdapter {
 	// Update scene
 	private void update() {
         handleInput();
+        if ( cameraFalling && camera.position.z > 0.5f) {
+        	camera.position.z -= 0.1f;
+			camera.lookAt(Graph3D.CAMERA_LOOK_INIT_AT);
+		} else {
+        	if (cameraFalling) {
+				cameraFalling = false;
+				camera = Graph3D.getPlayerCamera2();
+			}
+		}
 		camera.update();
         label.setText("X=" + camera.position.x +
                 " Y: " + camera.position.y +
