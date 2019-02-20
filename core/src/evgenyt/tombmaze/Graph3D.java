@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import java.util.ArrayList;
@@ -30,9 +31,9 @@ class Graph3D {
     /** Camera settings */
     private static final float CAMERA_NEAR = 0.1f;
     private static final float CAMERA_FAR = 300;
-    private static final Vector3 CAMERA_POS_INIT = new Vector3(1.5f, 1.5f, 20.5f);
-    private static final Vector3 CAMERA_POS_INIT2 = new Vector3(1.5f, 1.5f, 0.5f);
-    static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(2, 2, 0.5f);
+    private static final Vector3 CAMERA_POS_INIT = new Vector3(9.5f, 9.5f, 10.5f);
+    private static final Vector3 CAMERA_POS_INIT2 = new Vector3(9.5f, 9.5f, 0.5f);
+    static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(10.5f, 10.5f, 0.5f);
     private static final float CAMERA_VIEW_ANGLE = 75;
 
     /** Wall settings */
@@ -41,6 +42,7 @@ class Graph3D {
     private static final float WALL_DEPTH = 1;
     private static final float WALL_BOUNDS_PLUS = 0.1f;
     private static final String WALL_TEXTURE = "texture.png";
+    private static final String FLOOR_TEXTURE = "floor.png";
 
     /** Prize settings */
     private static final float PRIZE_WIDTH = 0.5f;
@@ -51,18 +53,23 @@ class Graph3D {
 
     /** 3D materials */
     private static Material wallMaterial;
-    private static Material blueMaterial;
+    private static Material floorMaterial;
+    private static Material blueMaterial = new Material(ColorAttribute.createDiffuse(Color.BLUE));
+
+
+    /** @retruns 3D material by texture file (texture repeated)*/
+    static Material getMaterial(String textureFile){
+        Texture texture = new Texture(textureFile);
+        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        TextureAttribute textureAttribute = TextureAttribute.createDiffuse(texture);
+        return new Material(textureAttribute);
+    }
 
     /** Loads textures from files to memory, creates materials */
     static void loadTexturesAndMaterials(){
-        // Wall material
-        Texture wallTexture = new Texture(WALL_TEXTURE);
-        wallTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-        wallTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        TextureAttribute textureAttribute = TextureAttribute.createDiffuse(wallTexture);
-        wallMaterial = new Material(textureAttribute);
-        // Blue material
-        blueMaterial = new Material(ColorAttribute.createDiffuse(Color.BLUE));
+        wallMaterial = getMaterial(WALL_TEXTURE);
+        floorMaterial = getMaterial(FLOOR_TEXTURE);
     }
 
     /** @return collision type */
@@ -89,6 +96,8 @@ class Graph3D {
     /** @return true if 2D bounds of 3D object contains position */
     static boolean collision2Dobject(ModelInstance object, Vector3 position) {
         InstanceData instanceData = (InstanceData) object.userData;
+        if (instanceData == null)
+            return false;
         Rectangle bounds = instanceData.getBounds2D();
         if (bounds.contains(position.x, position.y))
             return true;
@@ -120,11 +129,31 @@ class Graph3D {
         return camera;
     }
 
+    /** @return floor 3D object */
+    static ModelInstance buildFloor() {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        float w = 100f;
+        Model model = modelBuilder.createRect(0, 0, 0f,
+                w, 0, 0f,
+                w, w, 0f,
+                0, w, 0f,
+                0f, 1f, 0f,
+                floorMaterial, VertexAttributes.Usage.Position |
+                        VertexAttributes.Usage.TextureCoordinates);
+
+        // Trick to make texture repeat
+        Matrix3 mat = new Matrix3();
+        mat.scl(w);
+        model.meshes.get(0).transformUV(mat);
+
+        ModelInstance modelInstance = new ModelInstance(model, 0f, 0f, 0f);
+        return modelInstance;
+    }
 
     /** @return 3D prize object at x,y  */
     static ModelInstance buildPrize(float x, float y) {
-        ModelBuilder modelBuilder = new ModelBuilder();
         /* Simple box
+        ModelBuilder modelBuilder = new ModelBuilder();
         Model model = modelBuilder.createBox(PRIZE_WIDTH, PRIZE_HEIGHT, PRIZE_DEPTH, blueMaterial,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         */

@@ -67,6 +67,7 @@ class Maze {
                     walls.add(Graph3D.buildPrize(x + 1, y + 1));
             }
         }
+        walls.add(Graph3D.buildFloor());
         return walls;
     }
 }
