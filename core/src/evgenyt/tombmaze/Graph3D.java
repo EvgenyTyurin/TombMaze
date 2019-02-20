@@ -21,9 +21,7 @@ import com.badlogic.gdx.math.Vector3;
 import java.util.ArrayList;
 
 /**
-
-    Parameters and procedures of 3D graphics
-
+ *  Parameters and procedures of 3D graphics
 */
 
 class Graph3D {
@@ -35,8 +33,10 @@ class Graph3D {
     private static final Vector3 CAMERA_POS_INIT2 = new Vector3(9.5f, 9.5f, 0.5f);
     static final Vector3 CAMERA_LOOK_INIT_AT = new Vector3(10.5f, 10.5f, 0.5f);
     private static final float CAMERA_VIEW_ANGLE = 75;
+    static final float CAMERA_ROTATION_SPEED = 2f;
+    static final float CAMERA_MOVE_SPEED = 0.05f;
 
-    /** Wall settings */
+    /** Maze objects settings */
     // private static final float WALL_WIDTH = 1;
     // private static final float WALL_HEIGHT = 1;
     private static final float WALL_DEPTH = 1;
@@ -45,23 +45,27 @@ class Graph3D {
     private static final String FLOOR_TEXTURE = "stones.png";
     private static final String ROOF_TEXTURE = "tiles.png";
 
+    /** Doors settings */
+    private static final float DOOR_WIDTH = 1f;
+    private static final float DOOR_HEIGHT = 1f;
+    private static final float DOOR_DEPTH = 0.2f;
+    private static final float DOOR_BOUNDS_PLUS = 0.1f;
+
     /** Prize settings */
     private static final float PRIZE_WIDTH = 0.5f;
     private static final float PRIZE_HEIGHT = 0.5f;
     private static final float PRIZE_DEPTH = 0.5f;
     private static final float PRIZE_BOUNDS_PLUS = 0.1f;
 
-
     /** 3D materials */
-    private static Material wallMaterial;
-    private static Material floorMaterial;
-    private static Material roofMaterial;
+    private static Material wallMaterial = getMaterial(WALL_TEXTURE);
+    private static Material floorMaterial = getMaterial(FLOOR_TEXTURE);
+    private static Material roofMaterial = getMaterial(ROOF_TEXTURE);
     private static Material blueMaterial =
             new Material(ColorAttribute.createDiffuse(Color.BLUE));
 
-
-    /** @retruns 3D material by texture file (texture repeated)*/
-    static Material getMaterial(String textureFile){
+    /** @return  3D material by texture file (texture repeated)*/
+    private static Material getMaterial(String textureFile){
         Texture texture = new Texture(textureFile);
         texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
@@ -89,7 +93,7 @@ class Graph3D {
     }
 
     /** @return object in collection that 2D bounds collide with position */
-    static ModelInstance collision2D(ArrayList<ModelInstance> objects3D, Vector3 position) {
+    private static ModelInstance collision2D(ArrayList<ModelInstance> objects3D, Vector3 position) {
         for (ModelInstance obj3D : objects3D) {
             if (collision2Dobject(obj3D, position))
                 return obj3D;
@@ -98,15 +102,12 @@ class Graph3D {
     }
 
     /** @return true if 2D bounds of 3D object contains position */
-    static boolean collision2Dobject(ModelInstance object, Vector3 position) {
+    private static boolean collision2Dobject(ModelInstance object, Vector3 position) {
         InstanceData instanceData = (InstanceData) object.userData;
         if (instanceData == null)
             return false;
         Rectangle bounds = instanceData.getBounds2D();
-        if (bounds.contains(position.x, position.y))
-            return true;
-        else
-            return false;
+        return bounds.contains(position.x, position.y);
     }
 
     /** @return New player camera */
@@ -148,9 +149,7 @@ class Graph3D {
         Matrix3 mat = new Matrix3();
         mat.scl(size);
         model.meshes.get(0).transformUV(mat);
-
-        ModelInstance modelInstance = new ModelInstance(model, 0f, 0f, 0f);
-        return modelInstance;
+        return new ModelInstance(model, 0f, 0f, 0f);
     }
 
     /** @return roof 3D object */
@@ -169,10 +168,20 @@ class Graph3D {
         mat.scl(size);
         model.meshes.get(0).transformUV(mat);
 
-        ModelInstance modelInstance = new ModelInstance(model, 0f, 0f, 0f);
-        return modelInstance;
+        return new ModelInstance(model, 0f, 0f, 0f);
     }
 
+    /** @return 3D door object */
+    static ModelInstance buildDoor(float x, float y) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model model = modelBuilder.createBox(DOOR_WIDTH, DOOR_DEPTH, DOOR_HEIGHT, blueMaterial,
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        float doorX = x - DOOR_WIDTH;
+        float doorY = y - DOOR_DEPTH;
+        float doorZ = DOOR_HEIGHT / 2;
+        ModelInstance modelInstance = new ModelInstance(model, doorX, doorY, doorZ);
+        return modelInstance;
+    }
 
     /** @return 3D prize object at x,y  */
     static ModelInstance buildPrize(float x, float y) {
@@ -191,7 +200,7 @@ class Graph3D {
                 new Rectangle(prizeX - PRIZE_BOUNDS_PLUS, prizeY - PRIZE_BOUNDS_PLUS,
                         PRIZE_WIDTH + PRIZE_BOUNDS_PLUS * 2,
                         PRIZE_DEPTH + WALL_BOUNDS_PLUS * 2));
-        return (modelInstance);
+        return modelInstance;
     }
 
     /** @return 3D wall objects at x,y with width long */

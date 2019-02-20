@@ -36,9 +36,6 @@ public class TombMaze extends ApplicationAdapter {
 		// 3D rendering batch
 		modelBatch = new ModelBatch();
 
-		// Load textures and create materials
-		Graph3D.loadTexturesAndMaterials();
-
 		// Create light
 		environment = new Environment();
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f,
@@ -57,7 +54,7 @@ public class TombMaze extends ApplicationAdapter {
 	/** Player enters new maze */
 	private void newMaze() {
 	    if (mazeIdx > mazes.length - 1)
-	        return;
+	        mazeIdx = 0;
         // Create camera
         camera = Graph3D.getPlayerCamera();
         // Create labyrinth
@@ -70,7 +67,6 @@ public class TombMaze extends ApplicationAdapter {
 	private void playerMove(Vector3 newPos) {
 		camera.position.set(newPos);
 	}
-
 
 	/** Player want to move to new position */
 	private void wantMove(Vector3 newPos) {
@@ -96,9 +92,9 @@ public class TombMaze extends ApplicationAdapter {
 		    // Calculate new camera position
 			float moveScale;
 			if (touchY > PhoneScreen.CENTER_Y)
-				moveScale = 0.1f;
+				moveScale = Graph3D.CAMERA_MOVE_SPEED;
 			else
-				moveScale = -0.1f;
+				moveScale = -Graph3D.CAMERA_MOVE_SPEED;
 			Vector3 newPos = new Vector3();
             newPos.set(camera.direction).scl(moveScale);
             newPos.add(camera.position);
@@ -106,28 +102,19 @@ public class TombMaze extends ApplicationAdapter {
 		} else {
 		    // Rotate
             if (touchY > PhoneScreen.CENTER_Y) {
-                float angle;
-                if (touchX < PhoneScreen.CENTER_X)
-                    angle = 1;
+				if (touchX < PhoneScreen.CENTER_X)
+					camera.rotate(Vector3.Z, Graph3D.CAMERA_ROTATION_SPEED);
                 else
-                    angle = -1;
-                camera.rotate(Vector3.Z, angle);
+					camera.rotate(Vector3.Z, -Graph3D.CAMERA_ROTATION_SPEED);
             } else {
                 // Strafe
                 // Calculate new camera position
-                float moveScale;
-                float angle;
-                if (touchX > PhoneScreen.CENTER_X) {
-                    moveScale = 0.1f;
-                    angle = -90;
-                }
-                else {
-                    moveScale = 0.1f;
-                    angle = 90;
-                }
                 Vector3 newPos = new Vector3();
-                newPos.set(camera.direction).scl(moveScale);
-                newPos.rotate(Vector3.Z, angle);
+                newPos.set(camera.direction).scl(Graph3D.CAMERA_MOVE_SPEED);
+				if (touchX > PhoneScreen.CENTER_X)
+					newPos.rotate(Vector3.Z, -90);
+				else
+					newPos.rotate(Vector3.Z, 90);
                 newPos.add(camera.position);
                 wantMove(newPos);
             }
@@ -155,24 +142,19 @@ public class TombMaze extends ApplicationAdapter {
 	// Render scene
 	@Override
 	public void render () {
-
 		// Prepare to render
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-
 		// Update scene
 		update();
-
 		// Render 3D models
 		modelBatch.begin(camera);
 		for (ModelInstance wall : walls)
 		    modelBatch.render(wall, environment);
 		modelBatch.end();
-
 		// Draw HUD
 		stage.draw();
-
 	}
 
 	// Exit point

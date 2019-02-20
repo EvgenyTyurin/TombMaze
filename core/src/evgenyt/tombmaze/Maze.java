@@ -23,22 +23,19 @@ class Maze {
         String[] mazeSize = strings[0].split(",");
         width = Integer.valueOf(mazeSize[0]);
         height = Integer.valueOf(mazeSize[1]);
-        System.out.println("loadMaze: width=" + width + " height=" + height);
         int[][] mazeData = new int[width][height];
         for (int y = 0; y < height; y++) {
             String[] cells = strings[y + 1].split(",");
-            System.out.println("loadMaze: cells=" + Arrays.toString(cells));
             for (int x = 0; x < width; x++) {
                 mazeData[x][y] = Integer.valueOf(cells[x]);
-                System.out.println("loadMaze: mazeData[" + x + "][" + y + "]=" + mazeData[x][y]);
             }
         }
-        System.out.println("loadMaze: Maze loaded.");
         return mazeData;
     }
 
     /** @return 3d walls list by loaded maze data from file */
     static ArrayList<ModelInstance> createMaze(String mazeFile) {
+        // Load maze from file
         int[][] mazeData = loadMaze(mazeFile);
         ArrayList<ModelInstance> mazeObjs = new ArrayList<ModelInstance>();
         // Build walls
@@ -61,12 +58,18 @@ class Maze {
             if (blockWidth > 0)
                 mazeObjs.add(Graph3D.buildWall(xBegin, y, blockWidth));
         }
+        // Build special objects: prize, doors & etc
         for (int y = 0; y < mazeData.length; y++) {
             for (int x = 0; x < mazeData.length; x++) {
-                if (mazeData[x][y] == 2)
-                    mazeObjs.add(Graph3D.buildPrize(x + 1, y + 1));
+                switch (mazeData[x][y]) {
+                    case 2: mazeObjs.add(Graph3D.buildPrize(x + 1, y + 1));
+                            break;
+                    case 3: mazeObjs.add(Graph3D.buildDoor(x + 1, y + 1));
+                            break;
+                }
             }
         }
+        // Add floor and roof for more comfort
         mazeObjs.add(Graph3D.buildFloor(mazeData.length));
         mazeObjs.add(Graph3D.buildRoof(mazeData.length));
         return mazeObjs;
