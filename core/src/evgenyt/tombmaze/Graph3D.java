@@ -41,8 +41,9 @@ class Graph3D {
     // private static final float WALL_HEIGHT = 1;
     private static final float WALL_DEPTH = 1;
     private static final float WALL_BOUNDS_PLUS = 0.1f;
-    private static final String WALL_TEXTURE = "texture.png";
-    private static final String FLOOR_TEXTURE = "floor.png";
+    private static final String WALL_TEXTURE = "bricks.png";
+    private static final String FLOOR_TEXTURE = "stones.png";
+    private static final String ROOF_TEXTURE = "tiles.png";
 
     /** Prize settings */
     private static final float PRIZE_WIDTH = 0.5f;
@@ -54,7 +55,9 @@ class Graph3D {
     /** 3D materials */
     private static Material wallMaterial;
     private static Material floorMaterial;
-    private static Material blueMaterial = new Material(ColorAttribute.createDiffuse(Color.BLUE));
+    private static Material roofMaterial;
+    private static Material blueMaterial =
+            new Material(ColorAttribute.createDiffuse(Color.BLUE));
 
 
     /** @retruns 3D material by texture file (texture repeated)*/
@@ -70,6 +73,7 @@ class Graph3D {
     static void loadTexturesAndMaterials(){
         wallMaterial = getMaterial(WALL_TEXTURE);
         floorMaterial = getMaterial(FLOOR_TEXTURE);
+        roofMaterial = getMaterial(ROOF_TEXTURE);
     }
 
     /** @return collision type */
@@ -130,25 +134,45 @@ class Graph3D {
     }
 
     /** @return floor 3D object */
-    static ModelInstance buildFloor() {
+    static ModelInstance buildFloor(float size) {
         ModelBuilder modelBuilder = new ModelBuilder();
-        float w = 100f;
         Model model = modelBuilder.createRect(0, 0, 0f,
-                w, 0, 0f,
-                w, w, 0f,
-                0, w, 0f,
+                size, 0, 0f,
+                size, size, 0f,
+                0, size, 0f,
                 0f, 1f, 0f,
                 floorMaterial, VertexAttributes.Usage.Position |
                         VertexAttributes.Usage.TextureCoordinates);
 
         // Trick to make texture repeat
         Matrix3 mat = new Matrix3();
-        mat.scl(w);
+        mat.scl(size);
         model.meshes.get(0).transformUV(mat);
 
         ModelInstance modelInstance = new ModelInstance(model, 0f, 0f, 0f);
         return modelInstance;
     }
+
+    /** @return roof 3D object */
+    static ModelInstance buildRoof(float size) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model model = modelBuilder.createRect(0, 0, 1f,
+                0, size, 1f,
+                size, size, 1f,
+                size, 0, 1f,
+                0f, 1f, 0f,
+                roofMaterial, VertexAttributes.Usage.Position |
+                        VertexAttributes.Usage.TextureCoordinates);
+
+        // Trick to make texture repeat
+        Matrix3 mat = new Matrix3();
+        mat.scl(size);
+        model.meshes.get(0).transformUV(mat);
+
+        ModelInstance modelInstance = new ModelInstance(model, 0f, 0f, 0f);
+        return modelInstance;
+    }
+
 
     /** @return 3D prize object at x,y  */
     static ModelInstance buildPrize(float x, float y) {

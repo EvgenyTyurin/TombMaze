@@ -40,7 +40,7 @@ class Maze {
     /** @return 3d walls list by loaded maze data from file */
     static ArrayList<ModelInstance> createMaze(String mazeFile) {
         int[][] mazeData = loadMaze(mazeFile);
-        ArrayList<ModelInstance> walls = new ArrayList<ModelInstance>();
+        ArrayList<ModelInstance> mazeObjs = new ArrayList<ModelInstance>();
         // Build walls
         for (int y = 0; y < mazeData.length; y++) {
             int xBegin = 0;
@@ -52,22 +52,23 @@ class Maze {
                     xEnd++;
                 } else {
                     if (blockWidth > 0)
-                        walls.add(Graph3D.buildWall(xBegin, y, blockWidth));
+                        mazeObjs.add(Graph3D.buildWall(xBegin, y, blockWidth));
                     blockWidth = 0;
                     xBegin = xEnd + 1;
                     xEnd = xBegin;
                 }
             }
             if (blockWidth > 0)
-                walls.add(Graph3D.buildWall(xBegin, y, blockWidth));
+                mazeObjs.add(Graph3D.buildWall(xBegin, y, blockWidth));
         }
         for (int y = 0; y < mazeData.length; y++) {
             for (int x = 0; x < mazeData.length; x++) {
                 if (mazeData[x][y] == 2)
-                    walls.add(Graph3D.buildPrize(x + 1, y + 1));
+                    mazeObjs.add(Graph3D.buildPrize(x + 1, y + 1));
             }
         }
-        walls.add(Graph3D.buildFloor());
-        return walls;
+        mazeObjs.add(Graph3D.buildFloor(mazeData.length));
+        mazeObjs.add(Graph3D.buildRoof(mazeData.length));
+        return mazeObjs;
     }
 }
