@@ -22,7 +22,7 @@ public class TombMaze extends ApplicationAdapter {
 
 	private PerspectiveCamera camera;
 	private ModelBatch modelBatch;
-    private ArrayList<ModelInstance> walls;
+    private ArrayList<ModelInstance> mazeObjects;
 	private Environment environment;
 	private Stage stage;
 	private Label label;
@@ -58,7 +58,7 @@ public class TombMaze extends ApplicationAdapter {
         // Create camera
         camera = Graph3D.getPlayerCamera();
         // Create labyrinth
-        walls = Maze.createMaze(mazes[mazeIdx]);
+        mazeObjects = Maze.createMaze(mazes[mazeIdx]);
         mazeIdx++;
         cameraFalling = true;
     }
@@ -70,16 +70,25 @@ public class TombMaze extends ApplicationAdapter {
 
 	/** Player want to move to new position */
 	private void wantMove(Vector3 newPos) {
-		ObjType objType = Graph3D.collisionType(walls, newPos);
+		ModelInstance instance = Graph3D.collision2D(mazeObjects, newPos);
+		ObjType objType = Graph3D.getObjType(instance);
         switch (objType) {
-			case WALL:  break;
+			case WALL: break;
+			case DOOR: InstanceData instanceData = Graph3D.getInstanceData(instance);
+						Vector3 position = instance.transform.getTranslation(new Vector3());
+						if (position.z < -0) {
+							instance.userData = null;
+						} else {
+							instanceData.setSpeedZ(-0.01f);
+						}
+						break;
 			case PRIZE: newMaze();
 					    break;
 			default: playerMove(newPos);
 		}
 	}
 
-	// Handle user input
+	/** Handle user input */
 	private void handleInput() {
         // If falling or nothing pressed - exit
         if (cameraFalling || !Gdx.input.isTouched())
@@ -124,6 +133,12 @@ public class TombMaze extends ApplicationAdapter {
 	// Update scene
 	private void update() {
         handleInput();
+        for (ModelInstance mazeObject : mazeObjects) {
+        	InstanceData instanceData = (InstanceData) mazeObject.userData;
+        	if (instanceData != null) {
+				mazeObject.transform.translate(0, 0, instanceData.getSpeedZ());
+			}
+		}
         if ( cameraFalling && camera.position.z > 0.5f) {
         	camera.position.z -= 0.1f;
 			camera.lookAt(Graph3D.CAMERA_LOOK_INIT_AT);
@@ -150,7 +165,7 @@ public class TombMaze extends ApplicationAdapter {
 		update();
 		// Render 3D models
 		modelBatch.begin(camera);
-		for (ModelInstance wall : walls)
+		for (ModelInstance wall : mazeObjects)
 		    modelBatch.render(wall, environment);
 		modelBatch.end();
 		// Draw HUD

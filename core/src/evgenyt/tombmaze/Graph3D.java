@@ -48,7 +48,7 @@ class Graph3D {
     /** Doors settings */
     private static final float DOOR_WIDTH = 1f;
     private static final float DOOR_HEIGHT = 1f;
-    private static final float DOOR_DEPTH = 0.2f;
+    private static final float DOOR_DEPTH = 1.f;
     private static final float DOOR_BOUNDS_PLUS = 0.1f;
 
     /** Prize settings */
@@ -80,9 +80,14 @@ class Graph3D {
         roofMaterial = getMaterial(ROOF_TEXTURE);
     }
 
-    /** @return collision type */
-    static ObjType collisionType(ArrayList<ModelInstance> objects3D, Vector3 position) {
-        ModelInstance instance = collision2D(objects3D, position);
+    static InstanceData getInstanceData(ModelInstance instance) {
+        if (instance.userData == null)
+            return null;
+        else
+            return (InstanceData) instance.userData;
+    }
+
+    static ObjType getObjType(ModelInstance instance) {
         if (instance == null)
             return ObjType.NULL;
         InstanceData instanceData = (InstanceData) instance.userData;
@@ -93,7 +98,7 @@ class Graph3D {
     }
 
     /** @return object in collection that 2D bounds collide with position */
-    private static ModelInstance collision2D(ArrayList<ModelInstance> objects3D, Vector3 position) {
+    static ModelInstance collision2D(ArrayList<ModelInstance> objects3D, Vector3 position) {
         for (ModelInstance obj3D : objects3D) {
             if (collision2Dobject(obj3D, position))
                 return obj3D;
@@ -176,10 +181,15 @@ class Graph3D {
         ModelBuilder modelBuilder = new ModelBuilder();
         Model model = modelBuilder.createBox(DOOR_WIDTH, DOOR_DEPTH, DOOR_HEIGHT, blueMaterial,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        float doorX = x - DOOR_WIDTH;
-        float doorY = y - DOOR_DEPTH;
+        float doorX = x - DOOR_WIDTH / 2;
+        float doorY = y - DOOR_DEPTH / 2;
         float doorZ = DOOR_HEIGHT / 2;
         ModelInstance modelInstance = new ModelInstance(model, doorX, doorY, doorZ);
+        modelInstance.userData = new InstanceData(ObjType.DOOR,
+                new Rectangle(x - DOOR_WIDTH - DOOR_BOUNDS_PLUS,
+                        y - DOOR_DEPTH - DOOR_BOUNDS_PLUS,
+                        DOOR_WIDTH + DOOR_BOUNDS_PLUS * 2,
+                        DOOR_DEPTH + DOOR_BOUNDS_PLUS * 2));
         return modelInstance;
     }
 
