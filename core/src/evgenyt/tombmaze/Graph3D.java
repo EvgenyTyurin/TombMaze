@@ -51,6 +51,12 @@ class Graph3D {
     private static final float DOOR_DEPTH = 1.f;
     private static final float DOOR_BOUNDS_PLUS = 0.1f;
 
+    /** Key settings */
+    private static final float KEY_WIDTH = 0.3f;
+    private static final float KEY_HEIGHT = 0.3f;
+    private static final float KEY_DEPTH = 0.3f;
+    private static final float KEY_BOUNDS_PLUS = 0.1f;
+
     /** Prize settings */
     private static final float PRIZE_WIDTH = 0.5f;
     private static final float PRIZE_HEIGHT = 0.5f;
@@ -73,13 +79,7 @@ class Graph3D {
         return new Material(textureAttribute);
     }
 
-    /** Loads textures from files to memory, creates materials */
-    static void loadTexturesAndMaterials(){
-        wallMaterial = getMaterial(WALL_TEXTURE);
-        floorMaterial = getMaterial(FLOOR_TEXTURE);
-        roofMaterial = getMaterial(ROOF_TEXTURE);
-    }
-
+    /** @return  model instance additional info */
     static InstanceData getInstanceData(ModelInstance instance) {
         if (instance.userData == null)
             return null;
@@ -87,6 +87,7 @@ class Graph3D {
             return (InstanceData) instance.userData;
     }
 
+    /** @return Type of maze object*/
     static ObjType getObjType(ModelInstance instance) {
         if (instance == null)
             return ObjType.NULL;
@@ -115,7 +116,7 @@ class Graph3D {
         return bounds.contains(position.x, position.y);
     }
 
-    /** @return New player camera */
+    /** @return New player falling camera */
     static PerspectiveCamera getPlayerCamera() {
         PerspectiveCamera camera = new PerspectiveCamera(CAMERA_VIEW_ANGLE,
                 Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -127,7 +128,7 @@ class Graph3D {
         return camera;
     }
 
-    /** @return New player camera */
+    /** @return New player camera after falling */
     static PerspectiveCamera getPlayerCamera2() {
         PerspectiveCamera camera = new PerspectiveCamera(CAMERA_VIEW_ANGLE,
                 Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -190,6 +191,23 @@ class Graph3D {
                         y - DOOR_DEPTH - DOOR_BOUNDS_PLUS,
                         DOOR_WIDTH + DOOR_BOUNDS_PLUS * 2,
                         DOOR_DEPTH + DOOR_BOUNDS_PLUS * 2));
+        return modelInstance;
+    }
+
+    /** @return 3D key object */
+    static ModelInstance buildKey(float x, float y) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model model = modelBuilder.createBox(KEY_WIDTH, KEY_DEPTH, KEY_HEIGHT, blueMaterial,
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        float doorX = x - KEY_WIDTH / 2;
+        float doorY = y - KEY_DEPTH / 2;
+        float doorZ = KEY_HEIGHT / 2;
+        ModelInstance modelInstance = new ModelInstance(model, doorX, doorY, doorZ);
+        modelInstance.userData = new InstanceData(ObjType.KEY,
+                new Rectangle(x - KEY_WIDTH - KEY_BOUNDS_PLUS,
+                        y - KEY_DEPTH - KEY_BOUNDS_PLUS,
+                        KEY_WIDTH + KEY_BOUNDS_PLUS * 2,
+                        KEY_DEPTH + KEY_BOUNDS_PLUS * 2));
         return modelInstance;
     }
 

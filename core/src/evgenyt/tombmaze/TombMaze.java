@@ -30,7 +30,7 @@ public class TombMaze extends ApplicationAdapter {
 	private int mazeIdx = 0;
 	private boolean cameraFalling;
 
-	// Run point
+	/** App run point */
 	@Override
 	public void create () {
 		// 3D rendering batch
@@ -74,14 +74,19 @@ public class TombMaze extends ApplicationAdapter {
 		ObjType objType = Graph3D.getObjType(instance);
         switch (objType) {
 			case WALL: break;
-			case DOOR: InstanceData instanceData = Graph3D.getInstanceData(instance);
+			case DOOR:
+				if (instance != null) {
+					InstanceData instanceData = Graph3D.getInstanceData(instance);
+					if (instanceData != null) {
 						Vector3 position = instance.transform.getTranslation(new Vector3());
 						if (position.z < -0) {
 							instance.userData = null;
 						} else {
 							instanceData.setSpeedZ(-0.01f);
 						}
-						break;
+					}
+				}
+				break;
 			case PRIZE: newMaze();
 					    break;
 			default: playerMove(newPos);
@@ -130,15 +135,18 @@ public class TombMaze extends ApplicationAdapter {
 		}
     }
 
-	// Update scene
+	/** Update scene */
 	private void update() {
+	    // User input
         handleInput();
+        // Maze objects action
         for (ModelInstance mazeObject : mazeObjects) {
         	InstanceData instanceData = (InstanceData) mazeObject.userData;
         	if (instanceData != null) {
 				mazeObject.transform.translate(0, 0, instanceData.getSpeedZ());
 			}
 		}
+		// Camera actions
         if ( cameraFalling && camera.position.z > 0.5f) {
         	camera.position.z -= 0.1f;
 			camera.lookAt(Graph3D.CAMERA_LOOK_INIT_AT);
@@ -149,6 +157,7 @@ public class TombMaze extends ApplicationAdapter {
 			}
 		}
 		camera.update();
+        // Hud update
         label.setText("X=" + camera.position.x +
                 " Y: " + camera.position.y +
                 " Angle: " + camera.direction);

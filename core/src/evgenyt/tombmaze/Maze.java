@@ -3,9 +3,7 @@ package evgenyt.tombmaze;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Maze builder
@@ -66,6 +64,7 @@ class Maze {
                             break;
                     case 3: mazeObjs.add(Graph3D.buildDoor(x + 1, y + 1));
                             break;
+                    case 5: mazeObjs.add(Graph3D.buildKey(x + 1, y + 1));
                 }
             }
         }

@@ -12,12 +12,12 @@ class PhoneScreen {
 
     static float CENTER_X = Gdx.graphics.getWidth() / 2;
     static float CENTER_Y = Gdx.graphics.getHeight() / 2;
-    static BitmapFont LABEL_FONT = new BitmapFont(Gdx.files.internal("verdana.fnt"));
+    private static BitmapFont LABEL_FONT = new BitmapFont(Gdx.files.internal("verdana.fnt"));
     static com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle HUD_LABEL_STYLE =
             new com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle(LABEL_FONT, Color.BLACK);
 
     // Convert Y from user input to screen Y-coordinate
-    static public float flipY(float y) {
+    static float flipY(float y) {
         return Gdx.graphics.getHeight() - y;
     }
 
