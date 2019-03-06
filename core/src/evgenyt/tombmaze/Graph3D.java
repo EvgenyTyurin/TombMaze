@@ -70,6 +70,9 @@ class Graph3D {
     private static Material blueMaterial =
             new Material(ColorAttribute.createDiffuse(Color.BLUE));
 
+    /** Textures*/
+    public static Texture keyImageTexture = new Texture("keycard.png");
+
     /** @return  3D material by texture file (texture repeated)*/
     private static Material getMaterial(String textureFile){
         Texture texture = new Texture(textureFile);
@@ -199,13 +202,13 @@ class Graph3D {
         ModelBuilder modelBuilder = new ModelBuilder();
         Model model = modelBuilder.createBox(KEY_WIDTH, KEY_DEPTH, KEY_HEIGHT, blueMaterial,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        float doorX = x - KEY_WIDTH / 2;
-        float doorY = y - KEY_DEPTH / 2;
+        float doorX = x - KEY_WIDTH * 3 / 2;
+        float doorY = y - KEY_DEPTH * 3 / 2;
         float doorZ = KEY_HEIGHT / 2;
         ModelInstance modelInstance = new ModelInstance(model, doorX, doorY, doorZ);
         modelInstance.userData = new InstanceData(ObjType.KEY,
-                new Rectangle(x - KEY_WIDTH - KEY_BOUNDS_PLUS,
-                        y - KEY_DEPTH - KEY_BOUNDS_PLUS,
+                new Rectangle(x - 1 +KEY_WIDTH * 3 / 2 - KEY_BOUNDS_PLUS,
+                        y - 1 + KEY_DEPTH * 3 / 2 - KEY_BOUNDS_PLUS,
                         KEY_WIDTH + KEY_BOUNDS_PLUS * 2,
                         KEY_DEPTH + KEY_BOUNDS_PLUS * 2));
         return modelInstance;

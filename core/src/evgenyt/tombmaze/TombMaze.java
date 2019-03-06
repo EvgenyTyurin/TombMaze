@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import java.util.ArrayList;
 
@@ -24,11 +25,12 @@ public class TombMaze extends ApplicationAdapter {
 	private ModelBatch modelBatch;
     private ArrayList<ModelInstance> mazeObjects;
 	private Environment environment;
-	private Stage stage;
-	private Label label;
+	private Stage HUDStage;
+	private Label HUDLabel;
 	private String[] mazes = {"maze01.txt", "maze02.txt"};
 	private int mazeIdx = 0;
 	private boolean cameraFalling;
+	private int keysNum;
 
 	/** App run point */
 	@Override
@@ -42,13 +44,23 @@ public class TombMaze extends ApplicationAdapter {
 				1.0f));
 
 		// Create HUD
-		stage = new Stage();
-		label = new Label("", PhoneScreen.HUD_LABEL_STYLE);
-		label.setPosition(10, 10);
-		stage.addActor(label);
+		HUDStage = new Stage();
+		HUDLabel = new Label("", PhoneScreen.HUD_LABEL_STYLE);
 
 		// Enter labyrinth
         newMaze();
+	}
+
+	/** Form a hood with new player state */
+	private void updateHUD() {
+		HUDStage.clear();
+		HUDLabel.setPosition(10, 10);
+		HUDStage.addActor(HUDLabel);
+		for (int keyCounter = 1; keyCounter <= keysNum; keyCounter++) {
+			Image keyImage = new Image(Graph3D.keyImageTexture);
+			keyImage.setPosition(10 + (keyCounter - 1) * 210, 10);
+			HUDStage.addActor(keyImage);
+		}
 	}
 
 	/** Player enters new maze */
@@ -61,6 +73,8 @@ public class TombMaze extends ApplicationAdapter {
         mazeObjects = Maze.createMaze(mazes[mazeIdx]);
         mazeIdx++;
         cameraFalling = true;
+        keysNum = 0;
+		updateHUD();
     }
 
 	/** Player move to new position */
@@ -75,20 +89,24 @@ public class TombMaze extends ApplicationAdapter {
         switch (objType) {
 			case WALL: break;
 			case DOOR:
-				if (instance != null) {
+				if (instance != null && keysNum > 0) {
+					keysNum--;
+					updateHUD();
 					InstanceData instanceData = Graph3D.getInstanceData(instance);
-					if (instanceData != null) {
-						Vector3 position = instance.transform.getTranslation(new Vector3());
-						if (position.z < -0) {
-							instance.userData = null;
-						} else {
-							instanceData.setSpeedZ(-0.01f);
-						}
-					}
+					instanceData.setSpeedZ(-0.005f);
+					instanceData.setObjType(ObjType.DOOR_SLIDING);
 				}
 				break;
-			case PRIZE: newMaze();
-					    break;
+			case DOOR_SLIDING: break;
+			case PRIZE:
+				newMaze();
+				break;
+			case KEY:
+				keysNum++;
+				updateHUD();
+				mazeObjects.remove(instance);
+				playerMove(newPos);
+				break;
 			default: playerMove(newPos);
 		}
 	}
@@ -141,9 +159,13 @@ public class TombMaze extends ApplicationAdapter {
         handleInput();
         // Maze objects action
         for (ModelInstance mazeObject : mazeObjects) {
-        	InstanceData instanceData = (InstanceData) mazeObject.userData;
+        	InstanceData instanceData = Graph3D.getInstanceData(mazeObject);
         	if (instanceData != null) {
 				mazeObject.transform.translate(0, 0, instanceData.getSpeedZ());
+				Vector3 position = mazeObject.transform.getTranslation(new Vector3());
+				if (position.z < -0.5f) {
+					mazeObject.userData = null;
+				}
 			}
 		}
 		// Camera actions
@@ -158,7 +180,7 @@ public class TombMaze extends ApplicationAdapter {
 		}
 		camera.update();
         // Hud update
-        label.setText("X=" + camera.position.x +
+        HUDLabel.setText("X=" + camera.position.x +
                 " Y: " + camera.position.y +
                 " Angle: " + camera.direction);
 	}
@@ -178,7 +200,7 @@ public class TombMaze extends ApplicationAdapter {
 		    modelBatch.render(wall, environment);
 		modelBatch.end();
 		// Draw HUD
-		stage.draw();
+		HUDStage.draw();
 	}
 
 	// Exit point

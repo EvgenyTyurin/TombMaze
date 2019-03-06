@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 class InstanceData {
 
-    private final ObjType objType;
+    private ObjType objType;
     private Rectangle bounds2D;
     private float speedZ = 0;
 
@@ -21,15 +21,19 @@ class InstanceData {
         return bounds2D;
     }
 
-    public ObjType getObjType() {
+    ObjType getObjType() {
         return objType;
     }
 
-    public float getSpeedZ() {
+    void setObjType(ObjType objType) {
+        this.objType = objType;
+    }
+
+    float getSpeedZ() {
         return speedZ;
     }
 
-    public void setSpeedZ(float speedZ) {
+    void setSpeedZ(float speedZ) {
         this.speedZ = speedZ;
     }
 }
