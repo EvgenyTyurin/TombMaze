@@ -41,9 +41,15 @@ class Graph3D {
     // private static final float WALL_HEIGHT = 1;
     private static final float WALL_DEPTH = 1;
     private static final float WALL_BOUNDS_PLUS = 0.1f;
+
+    /** Textures */
     private static final String WALL_TEXTURE = "bricks.png";
     private static final String FLOOR_TEXTURE = "stones.png";
     private static final String ROOF_TEXTURE = "tiles.png";
+    private static final String WOOD_TEXTURE = "wood.jpg";
+
+    /** 3D models */
+    private static final String KEY_OBJ = "key.obj";
 
     /** Doors settings */
     private static final float DOOR_WIDTH = 1f;
@@ -67,11 +73,12 @@ class Graph3D {
     private static Material wallMaterial = getMaterial(WALL_TEXTURE);
     private static Material floorMaterial = getMaterial(FLOOR_TEXTURE);
     private static Material roofMaterial = getMaterial(ROOF_TEXTURE);
+    private static Material doorMaterial = getMaterial(WOOD_TEXTURE);
     private static Material blueMaterial =
             new Material(ColorAttribute.createDiffuse(Color.BLUE));
 
     /** Textures*/
-    public static Texture keyImageTexture = new Texture("keycard.png");
+    static Texture keyImageTexture = new Texture("keycard.png");
 
     /** @return  3D material by texture file (texture repeated)*/
     private static Material getMaterial(String textureFile){
@@ -153,7 +160,6 @@ class Graph3D {
                 0f, 1f, 0f,
                 floorMaterial, VertexAttributes.Usage.Position |
                         VertexAttributes.Usage.TextureCoordinates);
-
         // Trick to make texture repeat
         Matrix3 mat = new Matrix3();
         mat.scl(size);
@@ -176,15 +182,15 @@ class Graph3D {
         Matrix3 mat = new Matrix3();
         mat.scl(size);
         model.meshes.get(0).transformUV(mat);
-
         return new ModelInstance(model, 0f, 0f, 0f);
     }
 
     /** @return 3D door object */
     static ModelInstance buildDoor(float x, float y) {
         ModelBuilder modelBuilder = new ModelBuilder();
-        Model model = modelBuilder.createBox(DOOR_WIDTH, DOOR_DEPTH, DOOR_HEIGHT, blueMaterial,
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        Model model = modelBuilder.createBox(DOOR_WIDTH, DOOR_DEPTH, DOOR_HEIGHT, doorMaterial,
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal |
+                        VertexAttributes.Usage.TextureCoordinates);
         float doorX = x - DOOR_WIDTH / 2;
         float doorY = y - DOOR_DEPTH / 2;
         float doorZ = DOOR_HEIGHT / 2;
@@ -199,9 +205,13 @@ class Graph3D {
 
     /** @return 3D key object */
     static ModelInstance buildKey(float x, float y) {
+        /*
         ModelBuilder modelBuilder = new ModelBuilder();
         Model model = modelBuilder.createBox(KEY_WIDTH, KEY_DEPTH, KEY_HEIGHT, blueMaterial,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+                */
+        ModelLoader loader = new ObjLoader();
+        Model model = loader.loadModel(Gdx.files.internal(KEY_OBJ));
         float doorX = x - KEY_WIDTH * 3 / 2;
         float doorY = y - KEY_DEPTH * 3 / 2;
         float doorZ = KEY_HEIGHT / 2;
